@@ -1,15 +1,7 @@
 from flask import Flask, current_app
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from src.models.models import db
 import click
 import os
-
-
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemy(model_class=Base)
 
 
 @click.command('init-db')
