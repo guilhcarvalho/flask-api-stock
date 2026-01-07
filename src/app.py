@@ -17,7 +17,9 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        SQLALCHEMY_DATABASE_URI=os.path.join('sqlite:///dji_parts_stock.sqlite')
+        SQLALCHEMY_DATABASE_URI=os.path.join(
+            'sqlite:///dji_parts_stock.sqlite'
+        )
     )
 
     # Load the instance config, if it exists, when not testing
@@ -32,26 +34,15 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    # register cli commands
     app.cli.add_command(init_db_command)
+
+    # initialize extensions
     db.init_app(app)
 
-    @app.route("/product/<id>/<dji_part_number>/<name>/<compatibility>/<quantity>", methods=["GET"])
-    def list_product(id, dji_part_number, name, compatibility, quantity):
-        return {
-            'ID': id,
-            'DJI Part Number': dji_part_number,
-            'Name': name,
-            'Compatibility': compatibility,
-            'Quantity': quantity
-        }
+    # register blueprints
+    from src.controllers import post_controller
 
-    @app.route("/create_product/<dji_part_number>/<name>/<compatibility>/<quantity>", methods=['GET', 'POST'])
-    def create_product(dji_part_number, name, compatibility, quantity):
-        return {
-            'DJI Part Number': dji_part_number,
-            'Name': name,
-            'Compatibility': compatibility,
-            'Quantity': quantity
-        }
+    app.register_blueprint(post_controller.app)
 
     return app
