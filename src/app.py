@@ -44,9 +44,11 @@ def create_app(test_config=None):
     from src.controllers import post_controller
     from src.controllers import get_controller
     from src.controllers import update_controller
-    
+    from src.controllers import delete_controller
+
     app.register_blueprint(post_controller.app)
     app.register_blueprint(get_controller.app)
     app.register_blueprint(update_controller.app)
+    app.register_blueprint(delete_controller.app)
 
     return app

@@ -9,13 +9,11 @@ app = Blueprint('Post', __name__, url_prefix='/post_controllers')
 def _create_user():
     data = request.json
     user = User(username=data["username"])
-    if request.method == "POST":
-        with db.session.begin():
-            db.session.add(user)
-            db.session.commit()
-        return {"message": "User created!"}, HTTPStatus.CREATED
-    else:
-        return []
+
+    db.session.add(user)
+    db.session.commit()
+
+    return {"message": "User created!"}, HTTPStatus.CREATED
 
 
 @app.route("/register_item", methods=["POST"])
@@ -27,10 +25,8 @@ def _register_item():
         quantity=data["quantity"],
         author_id=data["author_id"]
     )
-    if request.method == "POST":
-        with db.session.begin():
-            db.session.add(register_item)
-            db.session.commit()
-        return {"message": "Registered item!"}, HTTPStatus.CREATED
-    else:
-        return []
+
+    db.session.add(register_item)
+    db.session.commit()
+
+    return {"message": "Registered item!"}, HTTPStatus.CREATED
