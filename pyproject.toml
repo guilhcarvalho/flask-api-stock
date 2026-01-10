@@ -1,18 +1,20 @@
 [project]
-name = "apirest-flask"
+name = "flask-api-stock"
 version = "0.1.0"
-description = ""
+description = "Projeto API RESTful com flask no python 3.11.9"
 authors = [
-    {name = "Guilherme"}
+    {name = "Your Name",email = "you@example.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "flask (>=3.1.2,<4.0.0)",
-    "python-dotenv (>=1.2.1,<2.0.0)",
-    "flask-sqlalchemy (>=3.1.1,<4.0.0)"
+    "flask-sqlalchemy (>=3.1.1,<4.0.0)",
+    "flask-jwt-extended (>=4.7.1,<5.0.0)"
 ]
 
+[tool.poetry]
+packages = [{include = "flask_api_stock_python_3"}]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

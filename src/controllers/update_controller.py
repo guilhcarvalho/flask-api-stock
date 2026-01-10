@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from src.models.models import User, Dji_Part, db
 from http import HTTPStatus
+from flask_jwt_extended import jwt_required
 
 app = Blueprint("Update", __name__, url_prefix="/update_controllers")
 

@@ -1,7 +1,10 @@
 from flask import Flask, current_app
+from flask_jwt_extended import JWTManager
 from src.models.models import db
 import click
 import os
+
+jwt = JWTManager()
 
 
 @click.command('init-db')
@@ -19,7 +22,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI=os.path.join(
             'sqlite:///dji_parts_stock.sqlite'
-        )
+        ),
+        JWT_SECRET_KEY="super-secret",
     )
 
     # Load the instance config, if it exists, when not testing
@@ -39,16 +43,19 @@ def create_app(test_config=None):
 
     # initialize extensions
     db.init_app(app)
+    jwt.init_app(app)
 
     # register blueprints
     from src.controllers import post_controller
     from src.controllers import get_controller
     from src.controllers import update_controller
     from src.controllers import delete_controller
+    from src.controllers import auth_controller
 
     app.register_blueprint(post_controller.app)
     app.register_blueprint(get_controller.app)
     app.register_blueprint(update_controller.app)
     app.register_blueprint(delete_controller.app)
-
+    app.register_blueprint(auth_controller.app)
+    
     return app

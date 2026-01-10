@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 
 
 class Base(DeclarativeBase):
@@ -11,9 +11,21 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 
 
+class Role(db.Model):
+    id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(sa.String, nullable=False)
+    user: Mapped["User"] = relationship(back_populates="role")
+
+    def __repr__(self):
+        return f'Role(id={self.id!r}, name={self.name!r})'
+
+
 class User(db.Model):
     id: Mapped[int] = mapped_column(sa.Integer, primary_key=True)
     username: Mapped[str] = mapped_column(sa.String, unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(sa.String, nullable=False)
+    role_id: Mapped[int] = mapped_column(sa.ForeignKey("role.id"))
+    role: Mapped["Role"] = relationship(back_populates="user")
 
     def __repr__(self):
         return f'User(id={self.id!r}, username={self.username!r})'

@@ -1,6 +1,7 @@
 from flask import Blueprint
 from src.models.models import User, Dji_Part, db
 from http import HTTPStatus
+from flask_jwt_extended import jwt_required
 
 app = Blueprint("Delete", __name__, url_prefix="/delete_controllers")
 

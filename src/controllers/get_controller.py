@@ -1,5 +1,6 @@
 from flask import Blueprint
 from src.models.models import User, Dji_Part, db
+from flask_jwt_extended import jwt_required
 
 app = Blueprint('Get', __name__, url_prefix='/get_controllers')
 
