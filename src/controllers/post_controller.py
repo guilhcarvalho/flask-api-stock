@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from src.models.models import User, Dji_Part, Role, db
+from src.services.utils import requires_role
 from http import HTTPStatus
 from flask_jwt_extended import jwt_required
 
@@ -7,6 +8,8 @@ app = Blueprint('Post', __name__, url_prefix='/post_controllers')
 
 
 @app.route("/create_roles", methods=["POST"])
+@jwt_required()
+@requires_role("admin")
 def _create_role():
     data = request.json
     role = Role(name=data["name"])
@@ -18,6 +21,8 @@ def _create_role():
 
 
 @app.route("/create_users", methods=["POST"])
+@jwt_required()
+@requires_role("admin")
 def _create_user():
     data = request.json
     user = User(
@@ -33,6 +38,8 @@ def _create_user():
 
 
 @app.route("/register_item", methods=["POST"])
+@jwt_required()
+@requires_role("admin")
 def _register_item():
     data = request.json
     register_item = Dji_Part(

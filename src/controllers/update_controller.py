@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from src.models.models import User, Dji_Part, db
+from src.services.utils import requires_role
 from http import HTTPStatus
 from flask_jwt_extended import jwt_required
 
@@ -7,6 +8,8 @@ app = Blueprint("Update", __name__, url_prefix="/update_controllers")
 
 
 @app.route("/update_users/<int:user_id>", methods=["PATCH"])
+@jwt_required()
+@requires_role("admin")
 def update_user(user_id):
     user = db.get_or_404(User, user_id)
     data = request.json
@@ -30,6 +33,8 @@ def update_user(user_id):
 
 
 @app.route("/update_itens/<int:item_id>", methods=["PATCH"])
+@jwt_required()
+@requires_role("admin")
 def update_item(item_id):
     item = db.get_or_404(Dji_Part, item_id)
     data = request.json
