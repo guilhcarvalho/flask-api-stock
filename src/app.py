@@ -1,36 +1,28 @@
-from flask import Flask, current_app
-from flask_jwt_extended import JWTManager
-from src.models.models import db
-import click
 import os
 
+import click
+from flask import Flask, current_app, json
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
+from werkzeug.exceptions import HTTPException
+
+from src.models import db
+
 jwt = JWTManager()
+bcrypt = Bcrypt()
 
 
-@click.command('init-db')
+@click.command("init-db")
 def init_db_command():
-    global db
     with current_app.app_context():
         db.create_all()
-    click.echo('Initialized the database.')
+    click.echo("Initialized the database.")
 
 
-def create_app(test_config=None):
+def create_app(enviroment=os.environ["ENVIROMENT"]):
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        SQLALCHEMY_DATABASE_URI=os.path.join(
-            'sqlite:///dji_parts_stock.sqlite'
-        ),
-        JWT_SECRET_KEY="super-secret",
-    )
-
-    # Load the instance config, if it exists, when not testing
-    if test_config is None:
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        app.config.from_mapping(test_config)
+    app.config.from_object(f"src.config.{enviroment.title()}Config")
 
     # Ensure the instance folder exists
     try:
@@ -44,18 +36,29 @@ def create_app(test_config=None):
     # initialize extensions
     db.init_app(app)
     jwt.init_app(app)
+    bcrypt.init_app(app)
 
     # register blueprints
-    from src.controllers import post_controller
-    from src.controllers import get_controller
-    from src.controllers import update_controller
-    from src.controllers import delete_controller
-    from src.controllers import auth_controller
-
-    app.register_blueprint(post_controller.app)
-    app.register_blueprint(get_controller.app)
-    app.register_blueprint(update_controller.app)
-    app.register_blueprint(delete_controller.app)
-    app.register_blueprint(auth_controller.app)
+    from src.controllers import auth, dji_part, role, user
+    """Importação dentro da função, para evitar importação circular"""
+    app.register_blueprint(dji_part.app)
+    app.register_blueprint(role.app)
+    app.register_blueprint(user.app)
+    app.register_blueprint(auth.app)
     
+ 
+    @app.errorhandler(HTTPException)
+    def handle_exception(e):
+        """Return JSON instead of HTML for HTTP errors."""
+        # start with the correct headers and status code from the error
+        response = e.get_response()
+        # replace the body with JSON
+        response.data = json.dumps({
+            "code": e.code,
+            "name": e.name,
+            "description": e.description,
+        })
+        response.content_type = "application/json"
+        return response
+
     return app
