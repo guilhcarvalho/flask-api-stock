@@ -14,7 +14,10 @@ dependencies = [
     "black (>=25.12.0,<26.0.0)",
     "flake8 (>=7.3.0,<8.0.0)",
     "isort (>=7.0.0,<8.0.0)",
-    "flask-bcrypt (>=1.0.1,<2.0.0)"
+    "flask-bcrypt (>=1.0.1,<2.0.0)",
+    "flask-marshmallow (>=1.3.0,<2.0.0)",
+    "marshmallow-sqlalchemy (>=1.4.2,<2.0.0)",
+    "apispec-webframeworks (>=1.2.0,<2.0.0)"
 ]
 
 [tool.poetry]

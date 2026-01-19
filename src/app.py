@@ -1,15 +1,26 @@
 import os
-
+from apispec import APISpec
+from apispec.ext.marshmallow import MarshmallowPlugin
+from apispec_webframeworks.flask import FlaskPlugin
 import click
 from flask import Flask, current_app, json
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from flask_marshmallow import Marshmallow
 from werkzeug.exceptions import HTTPException
 
 from src.models import db
 
 jwt = JWTManager()
 bcrypt = Bcrypt()
+ma = Marshmallow()
+spec = APISpec(
+    title="DJI Stock",
+    version="1.0.0",
+    openapi_version= "3.0.0",
+    info=dict(description="DJI Itens Control"),
+    plugins=[FlaskPlugin(), MarshmallowPlugin()],
+)
 
 
 @click.command("init-db")
@@ -37,6 +48,7 @@ def create_app(enviroment=os.environ["ENVIROMENT"]):
     db.init_app(app)
     jwt.init_app(app)
     bcrypt.init_app(app)
+    ma.init_app(app)
 
     # register blueprints
     from src.controllers import auth, dji_part, role, user
@@ -45,6 +57,26 @@ def create_app(enviroment=os.environ["ENVIROMENT"]):
     app.register_blueprint(role.app)
     app.register_blueprint(user.app)
     app.register_blueprint(auth.app)
+
+
+    @app.route("/docs")
+    def docs():
+        return (spec
+                .path(view=user._get_user)
+                .path(view=user._delete_user)
+                .path(view=user._update_user)
+                .path(view=user._list_users)
+                .path(view=user._create_user)
+                .path(view=user._first_user)
+                .path(view=dji_part._get_item)
+                .path(view=dji_part._register_item)
+                .path(view=dji_part._list_itens)
+                .path(view=dji_part._update_item)
+                .path(view=dji_part._delete_item)
+                .path(view=role._create_role)
+                .path(view=role._first_role)
+                .path(view=auth._login)
+                .to_dict())
     
  
     @app.errorhandler(HTTPException)

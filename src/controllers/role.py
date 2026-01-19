@@ -2,9 +2,11 @@ from http import HTTPStatus
 
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
+from marshmallow import ValidationError
 
 from src.models import Role, db
 from src.services.utils import requires_role, save_data
+from src.views.role import CreateUserSchema
 
 app = Blueprint("role", __name__, url_prefix="/roles")
 
@@ -13,7 +15,29 @@ app = Blueprint("role", __name__, url_prefix="/roles")
 @jwt_required()
 @requires_role("admin")
 def _create_role():
-    data = request.json
+    """Role detail view.
+    ---
+    post:
+      tags:
+        - role
+      summary: Create role
+      description: Create role
+      parameters:
+        - in: path
+          schema: RoleParameter
+      responses:
+        201:
+          description: successful operation
+        422:
+          description: Unprocessable Entity
+    """
+    role_schema = CreateUserSchema()
+    
+    try:
+        data = role_schema.load(request.json)
+    except ValidationError as exc:
+        return exc.messages, HTTPStatus.UNPROCESSABLE_ENTITY
+    
     role = Role(name=data["name"])
 
     save_data(role)
@@ -23,7 +47,31 @@ def _create_role():
 
 @app.route("/first_role", methods=["POST"])
 def _first_role():
-    data = request.json
+    """Role detail view.
+    ---
+    post:
+      tags:
+        - role
+      summary: Create role
+      description: Create role
+      parameters:
+        - in: path
+          schema: RoleParameter
+      responses:
+        201:
+          description: successful operation
+        422:
+          description: Unprocessable Entity
+        403:
+          description: Forbidden
+    """
+    role_schema = CreateUserSchema()
+    
+    try:
+        data = role_schema.load(request.json)
+    except ValidationError as exc:
+        return exc.messages, HTTPStatus.UNPROCESSABLE_ENTITY
+
     role = Role(name=data["name"])
     validation = db.session.query(db.session.query(Role).exists()).scalar()
     

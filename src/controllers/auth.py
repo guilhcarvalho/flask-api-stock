@@ -15,6 +15,20 @@ def _check_password(pw_hash, password):
 
 @app.route("/login", methods=["POST"])
 def _login():
+    """Role detail view.
+    ---
+    post:
+      tags:
+        - auth
+      summary: Auth login
+      description: Auth login
+      parameters:
+        - in: path
+          schema: AuthParameter
+      responses:
+        401:
+          description: Unauthorized
+    """
     username = request.json.get("username", None)
     password = request.json.get("password", None)
     user = db.session.execute(db.select(User).where(User.username == username)).scalar()

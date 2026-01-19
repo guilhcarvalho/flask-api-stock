@@ -1,20 +1,48 @@
 from http import HTTPStatus
 
 from flask import Blueprint, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import jwt_required
+from marshmallow import ValidationError
 
 from src.app import bcrypt
 from src.models import User, db
 from src.services.utils import (InvalidFieldsError, delete_data, requires_role,
                                 save_data, update_fields)
+from src.views.user import CreateUserSchema, UserSchema
 
 app = Blueprint("user", __name__, url_prefix="/users")
 
 
 @app.route("/first_user", methods=["POST"])
 def _first_user():
-    data = request.json
-    user = User(username=data["username"], password=bcrypt.generate_password_hash(data["password"]), role_id=data["role_id"])
+    """User detail view.
+    ---
+    post:
+      tags:
+        - user
+      summary: Create user
+      description: Create user
+      parameters:
+        - in: path
+          schema: UserParameter
+      responses:
+        201:
+          description: successful operation
+        422:
+          description: Unprocessable Entity
+        403:
+          description: Forbidden
+    """
+    user_schema = CreateUserSchema()
+    
+    try:
+        data = user_schema.load(request.json)
+    except ValidationError as exc:
+        return exc.messages, HTTPStatus.UNPROCESSABLE_ENTITY
+    
+    user = User(username=data["username"],
+                password=bcrypt.generate_password_hash(data["password"]),
+                role_id=data["role_id"])
     validation = db.session.query(db.session.query(User).exists()).scalar()
     
     if validation == True:
@@ -29,42 +57,88 @@ def _first_user():
 @jwt_required()
 @requires_role("admin")
 def _get_user(user_id):
+    """User detail view.
+    ---
+    get:
+      tags:
+        - user
+      summary: List user
+      description: List user
+      parameters:
+        - in: path
+          name: user_id 
+          schema: UserParameter
+      responses:
+        200:
+          description: successful operation
+          content:
+            aplication/json:
+              schema: UserSchema
+        404:
+          description: Not found user
+    """
     user = db.get_or_404(User, user_id)
-    user_json = {
-        "id": user.id,
-        "username": user.username,
-        "Role": {"role id": user.role_id, "access": user.role.name},
-    }
-    return {"User Identify id": get_jwt_identity(), "user": user_json}
+    user_schema = UserSchema()
+    return user_schema.dump(user)
 
 
 @app.route("/list_users")
 @jwt_required()
 @requires_role("admin")
 def _list_users():
+    """Users detail view.
+    ---
+    get:
+      tags:
+        - user
+      summary: List all users
+      description: List all users
+      parameters:
+          schema: UserParameter
+      responses:
+        200:
+          description: successful operation
+          content:
+            aplication/json:
+              schema: UserSchema
+    """
     query = db.select(User)
     users = db.session.execute(query).scalars()
-    users_json = [
-        {
-            "id": user.id,
-            "username": user.username,
-            "role": {
-                "role id": user.role_id,
-                "access": user.role.name,
-            },
-        }
-        for user in users
-    ]
-    return {"User Identify id": get_jwt_identity(), "users": users_json}
+    users_schema = UserSchema(many=True)
+    return users_schema.dump(users)
 
 
 @app.route("/create_users", methods=["POST"])
 @jwt_required()
 @requires_role("admin")
 def _create_user():
-    data = request.json
-    user = User(username=data["username"], password=bcrypt.generate_password_hash(data["password"]), role_id=data["role_id"])
-
+    """User detail view.
+    ---
+    post:
+      tags:
+        - user
+      summary: Create user
+      description: Create user
+      parameters:
+        - in: path
+          schema: UserParameter
+      responses:
+        201:
+          description: successful operation
+        422:
+          description: Unprocessable Entity
+    """
+    user_schema = CreateUserSchema()
+    
+    try:
+        data = user_schema.load(request.json)
+    except ValidationError as exc:
+        return exc.messages, HTTPStatus.UNPROCESSABLE_ENTITY
+    
+    user = User(username=data["username"],
+                password=bcrypt.generate_password_hash(data["password"]),
+                role_id=data["role_id"])
+    
     save_data(user)
 
     return {"msg": "User created!"}, HTTPStatus.CREATED
@@ -74,6 +148,25 @@ def _create_user():
 @jwt_required()
 @requires_role("admin")
 def _update_user(user_id):
+    """User detail view.
+    ---
+    patch:
+      tags:
+        - user
+      summary: Update user
+      description: Update user
+      parameters:
+        - in: path
+          name: user_id 
+          schema: UserParameter
+      responses:
+        200:
+          description: successful operation
+        404:
+          description: Not found user
+        400:
+          description: Bad request
+    """
     user = db.get_or_404(User, user_id)
     data = request.json
 
@@ -93,6 +186,23 @@ def _update_user(user_id):
 @jwt_required()
 @requires_role("admin")
 def _delete_user(user_id):
+    """User detail view.
+    ---
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      description: Delete user
+      parameters:
+        - in: path
+          name: user_id 
+          schema: UserParameter
+      responses:
+        204:
+          description: successful operation
+        404:
+          description: Not found user
+    """
     user = db.get_or_404(User, user_id)
     delete_data(user)
 
