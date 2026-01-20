@@ -30,10 +30,10 @@ def init_db_command():
     click.echo("Initialized the database.")
 
 
-def create_app(enviroment=os.environ["ENVIROMENT"]):
+def create_app(environment=os.environ["ENVIRONMENT"]):
     # Create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(f"src.config.{enviroment.title()}Config")
+    app.config.from_object(f"src.config.{environment.title()}Config")
 
     # Ensure the instance folder exists
     try:
